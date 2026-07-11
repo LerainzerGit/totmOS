@@ -50,7 +50,7 @@ fi
 
 # --- LightDM greeter branding ------------------------------------------------
 mkdir -p /usr/share/backgrounds/totmos
-cp /tmp/branding/lightdm/wallpaper.png /usr/share/backgrounds/totmos/wallpaper.png 2>/dev/null || true
+cp /tmp/branding/wallpaper.png /usr/share/backgrounds/totmos/wallpaper.png 2>/dev/null || true
 mkdir -p /etc/lightdm/lightdm-gtk-greeter.conf.d
 cat > /etc/lightdm/lightdm-gtk-greeter.conf.d/60-totmos.conf <<'EOF'
 [greeter]
