@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=totmOS
+Description=totmOS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/totmos
+ScriptFile=/usr/share/plymouth/themes/totmos/totmos.script
