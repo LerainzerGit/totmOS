@@ -46,10 +46,12 @@ jobs:
           ls -la build/iso-root/casper/ || echo "no casper dir"
           find build/iso-root -iname "*.squashfs*"
 
-      - name: Extract squashfs filesystem
+      - name: Extract squashfs filesystem (layered)
         run: |
-          sudo unsquashfs -d build/squashfs-root build/iso-root/casper/filesystem.squashfs
-
+          sudo unsquashfs -d build/squashfs-root build/iso-root/casper/minimal.squashfs
+          sudo unsquashfs -f -d build/squashfs-root build/iso-root/casper/minimal.standard.squashfs
+          sudo unsquashfs -f -d build/squashfs-root build/iso-root/casper/minimal.standard.live.squashfs
+          
       - name: Apply totmOS customizations (chroot)
         run: |
           sudo cp scripts/customize.sh build/squashfs-root/tmp/customize.sh
