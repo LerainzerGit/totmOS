@@ -40,6 +40,12 @@ jobs:
           rsync -a build/mnt/ build/iso-root/
           sudo umount build/mnt
 
+          - name: Debug - list casper contents
+        run: |
+          ls -la build/iso-root/
+          ls -la build/iso-root/casper/ || echo "no casper dir"
+          find build/iso-root -iname "*.squashfs*"
+
       - name: Extract squashfs filesystem
         run: |
           sudo unsquashfs -d build/squashfs-root build/iso-root/casper/filesystem.squashfs
