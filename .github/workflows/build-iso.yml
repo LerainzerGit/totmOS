@@ -48,6 +48,7 @@ jobs:
 
       - name: Extract squashfs filesystem (layered)
         run: |
+          sudo rm -rf build/squashfs-root
           sudo unsquashfs -d build/squashfs-root build/iso-root/casper/minimal.squashfs
           sudo unsquashfs -f -d build/squashfs-root build/iso-root/casper/minimal.standard.squashfs
           sudo unsquashfs -f -d build/squashfs-root build/iso-root/casper/minimal.standard.live.squashfs
