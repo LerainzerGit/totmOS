@@ -35,7 +35,7 @@ fi
 apt-get update
 apt-get install -y --no-install-recommends \
   plymouth plymouth-themes lightdm-gtk-greeter \
-  xfce4-whiskermenu-plugin xfce4-docklike-plugin \
+  xfce4-whiskermenu-plugin \
   arc-theme papirus-icon-theme fonts-noto
 
 # --- Plymouth boot splash ----------------------------------------------------
