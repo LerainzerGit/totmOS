@@ -86,6 +86,12 @@ jobs:
         run: |
           echo "totmOS" | sudo tee build/iso-root/.disk/info
 
+          - name: Debug - list boot images
+        run: |
+          find build/iso-root -iname "*efi*"
+          find build/iso-root -iname "*eltorito*"
+          ls -la build/squashfs-root/usr/lib/grub/i386-pc/ | grep -i hybrid
+
       - name: Rebuild bootable hybrid ISO
         run: |
           cd build/iso-root
