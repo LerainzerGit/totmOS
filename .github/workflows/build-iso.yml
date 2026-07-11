@@ -31,8 +31,8 @@ jobs:
       - name: Download base Xubuntu ISO
         run: |
           mkdir -p build
-          wget -O build/base.iso "https://cdimage.ubuntu.com/xubuntu/releases/24.04/release/xubuntu-24.04-desktop-amd64.iso"
-
+          wget -O build/base.iso "https://cdimage.ubuntu.com/xubuntu/releases/24.04/release/xubuntu-24.04.4-desktop-amd64.iso"
+          
       - name: Extract ISO contents
         run: |
           mkdir -p build/iso-root build/squashfs-root build/mnt
