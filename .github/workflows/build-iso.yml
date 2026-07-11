@@ -1,0 +1,106 @@
+name: Build totmOS ISO
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - 'branding/**'
+      - 'scripts/**'
+      - '.github/workflows/build-iso.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools xorriso isolinux syslinux-utils \
+            genisoimage rsync wget ca-certificates
+
+      - name: Download base Xubuntu ISO
+        run: |
+          mkdir -p build
+          # Pin a specific Xubuntu release/mirror for reproducibility.
+          # Update this URL to the current LTS release as needed.
+          wget -O build/base.iso "https://cdimage.ubuntu.com/xubuntu/releases/24.04/release/xubuntu-24.04-desktop-amd64.iso"
+
+      - name: Extract ISO contents
+        run: |
+          mkdir -p build/iso-root build/squashfs-root
+          sudo mount -o loop build/base.iso /mnt || true
+          mkdir -p build/mnt
+          sudo mount -o loop build/base.iso build/mnt
+          rsync -a build/mnt/ build/iso-root/
+          sudo umount build/mnt
+
+      - name: Extract squashfs filesystem
+        run: |
+          sudo unsquashfs -d build/squashfs-root build/iso-root/casper/filesystem.squashfs
+
+      - name: Apply totmOS customizations (chroot)
+        run: |
+          sudo cp scripts/customize.sh build/squashfs-root/tmp/customize.sh
+          sudo cp -r branding/. build/squashfs-root/tmp/branding/
+          sudo chmod +x build/squashfs-root/tmp/customize.sh
+          sudo mount --bind /dev build/squashfs-root/dev
+          sudo mount --bind /proc build/squashfs-root/proc
+          sudo mount --bind /sys build/squashfs-root/sys
+          sudo cp /etc/resolv.conf build/squashfs-root/etc/resolv.conf
+          sudo chroot build/squashfs-root /tmp/customize.sh
+          sudo umount build/squashfs-root/dev
+          sudo umount build/squashfs-root/proc
+          sudo umount build/squashfs-root/sys
+
+      - name: Clean up chroot artifacts
+        run: |
+          sudo rm -rf build/squashfs-root/tmp/customize.sh build/squashfs-root/tmp/branding
+          sudo rm -f build/squashfs-root/var/lib/apt/lists/*_* || true
+
+      - name: Repack squashfs
+        run: |
+          sudo rm -f build/iso-root/casper/filesystem.squashfs
+          sudo mksquashfs build/squashfs-root build/iso-root/casper/filesystem.squashfs \
+            -comp xz -b 1M -noappend
+          printf $(sudo du -sx --block-size=1 build/squashfs-root | cut -f1) | \
+            sudo tee build/iso-root/casper/filesystem.size
+
+      - name: Rebrand ISO metadata
+        run: |
+          sudo sed -i 's/Xubuntu/totmOS/g' build/iso-root/.disk/info || true
+          echo "totmOS" | sudo tee build/iso-root/.disk/info
+
+      - name: Rebuild bootable hybrid ISO
+        run: |
+          cd build/iso-root
+          sudo xorriso -as mkisofs \
+            -iso-level 3 \
+            -full-iso9660-filenames \
+            -volid "totmOS" \
+            -eltorito-boot boot/grub/i386-pc/eltorito.img \
+            -no-emul-boot -boot-load-size 4 -boot-info-table \
+            --eltorito-catalog boot/grub/boot.cat \
+            --grub2-boot-info \
+            --grub2-mbr ../../build/squashfs-root/usr/lib/grub/i386-pc/boot_hybrid.img \
+            -eltorito-alt-boot \
+            -e EFI/boot/bootx64.efi \
+            -no-emul-boot \
+            -append_partition 2 0xef isolinux/efiboot.img \
+            -output ../../totmOS.iso \
+            .
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: totmOS-iso
+          path: totmOS.iso
+          retention-days: 14
