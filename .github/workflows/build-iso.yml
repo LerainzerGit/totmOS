@@ -85,7 +85,7 @@ jobs:
           sudo xorriso -indev build/base.iso \
             -outdev totmOS.iso \
             -map build/iso-root / \
-            -boot_image any replay \
+            -boot_image any keep \
             -volid "totmOS" \
             -compliance no_emul_toc
 
