@@ -1,0 +1,18 @@
+// totmOS Plymouth boot splash
+// Expects logo.png in the same theme directory (add your own asset here)
+
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetX(Window.GetWidth()  / 2 - logo.image.GetWidth()  / 2);
+logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2);
+
+progress_box.image = Image("progress_box.png");
+progress_bar.image = Image("progress_bar.png");
+
+fun progress_callback(duration, progress) {
+  bar_width = progress_bar.image.GetWidth() * progress;
+  cropped = progress_bar.image.Crop(0, 0, bar_width, progress_bar.image.GetHeight());
+  if (progress_bar.sprite) progress_bar.sprite.SetImage(cropped);
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
